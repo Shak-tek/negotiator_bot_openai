@@ -51,20 +51,19 @@ function typeText(text, container) {
 
     function typeChar() {
         if (index < text.length) {
-            paragraph.textContent += text.charAt(index); // Add characters to the paragraph
+            paragraph.textContent += text.charAt(index); 
             index++;
             setTimeout(typeChar, typingSpeed);
         } else {
-            paragraph.textContent = text; // Ensure the text is fully written
+            paragraph.textContent = text; 
         }
     }
 
     typeChar();
 }
 
-// Function to send the user message to the backend
 function sendToBackend(message) {
-    fetch('http://127.0.0.1:5000/chatbot', {  // Ensure this is the correct URL
+    fetch('http://127.0.0.1:5000/chatbot', { 
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -73,7 +72,27 @@ function sendToBackend(message) {
     })
         .then(response => response.json())
         .then(data => {
-            const botMessage = data.response?.message?.content || "Sorry, no response!";
+            console.log(data);
+            const botMessage = data.response || "Sorry, no response!";
+            appendMessage("bot", botMessage, true);  // Display the bot's response with typing effect
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            appendMessage("bot", "Sorry, something went wrong!");  // Fallback message on error
+        });
+}
+
+function initializeBackend(message) {
+    fetch('http://127.0.0.1:5000/initialize', {  
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ message: message })
+    })
+        .then(response => response.json())
+        .then(data => {
+            const botMessage = data.response || "Sorry, no response!";
             appendMessage("bot", botMessage, true);  // Display the bot's response with typing effect
         })
         .catch(error => {
@@ -84,6 +103,6 @@ function sendToBackend(message) {
 
 // Function to display the welcome message as a bot message on page load
 document.addEventListener("DOMContentLoaded", function () {
-    const welcomeText = "Hello! Welcome to BuyWheels. I'll do my best to gurantee you the best price for our product.";
-    appendMessage("bot", welcomeText, true);  // Use the appendMessage function with typing effect
+    const welcomeText = "Hi!";
+    initializeBackend(welcomeText);
 });
