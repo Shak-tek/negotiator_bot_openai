@@ -1,0 +1,155 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #f0f0f0;
+}
+
+.wrapper {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 370px;
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.wrapper .title {
+    background: #007bff;
+    color: white;
+    line-height: 2.5;
+    border-radius: 15px 15px 0 0;
+    text-align: center;
+    font-size: 20px;
+}
+
+.wrapper .box {
+    border: 1px solid #efefef;
+    padding: 15px;
+    border-radius: 0 0 15px 15px;
+    min-height: 400px;
+    max-height: 400px;
+    background: white;
+    overflow-y: auto;
+}
+
+.wrapper .box .item {
+    display: flex;
+    margin: 10px 0;
+}
+
+.wrapper .box .item .icon {
+    background: #007bff;
+    color: white;
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    line-height: 40px;
+    border-radius: 50%;
+}
+
+.wrapper .box .item.user {
+    justify-content: flex-end;
+}
+
+.wrapper .box .item.bot {
+    justify-content: flex-start;
+}
+
+.wrapper .box .item .msg {
+    background: #b5b5b6;
+    color: #fff;
+    border-radius: 10px;
+    width: 150px;
+    margin-left: 10px;
+    font-size: 14px;
+    line-height: 1.25;
+}
+
+.wrapper .box .item.bot .msg {
+    background: #007bff;
+    color: #fff;
+}
+
+.wrapper .box .item .msg p {
+    padding: 10px;
+}
+
+.wrapper .box .item.right {
+    justify-content: flex-end;
+}
+
+.wrapper .box .item.right .msg {
+    background: #efefef;
+    color: #333;
+}
+
+.wrapper .typing-area {
+    width: 100%;
+    background: #efefef;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+    border-radius: 0 0 15px 15px;
+}
+
+.wrapper .typing-area .input-field {
+    width: 100%;
+    position: relative;
+}
+
+.wrapper .typing-area .input-field input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    outline: none;
+    padding-right: 70px;
+    transition: 0.3s all ease;
+    font-size: 14px;
+}
+
+.wrapper .typing-area .input-field input:focus {
+    border-color: #007bff;
+}
+
+.wrapper .typing-area .input-field button {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    background: transparent;
+    border: 1px solid #007bff;
+    padding: 8px 12px;
+    border-radius: 10px;
+    color: #007bff;
+    outline: none;
+    cursor: pointer;
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.3s all ease;
+}
+
+.wrapper .typing-area .input-field button:hover {
+    background: #007bff;
+    color: white;
+}
+
+.wrapper .typing-area .input-field input:valid~button {
+    opacity: 1;
+    pointer-events: auto;
+}
