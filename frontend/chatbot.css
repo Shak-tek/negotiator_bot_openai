@@ -153,3 +153,22 @@ body {
     opacity: 1;
     pointer-events: auto;
 }
+
+.buttons {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.buttons button {
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.buttons button:hover {
+    background-color: #0056b3;
+}
