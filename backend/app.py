@@ -29,12 +29,9 @@ def get_openai_response(user_message):
     
     logging.info(f"last negotiated price: {LAST_NEGOTIATED_PRICE}")
 
-    # Append the user's message to the conversation history
     conversation_history.append({"role": "user", "content": user_message})
-    # Extract any numeric offer from the user
     user_offer = extract_price_from_message(user_message)
 
-    # Check if the user's message contains "Deal!"
     if user_message == "Deal!":
         bot_message = finalize_negotiation(LAST_NEGOTIATED_PRICE, close_offer=True)
         return {
@@ -42,11 +39,16 @@ def get_openai_response(user_message):
             'last_negotiated_price': LAST_NEGOTIATED_PRICE,
             'show_buttons': False
         }
+    elif user_message == "No Deal!":
+        bot_message = "Sorry that we couldn't reach an agreement. Better luck next time!"
+        return {
+            'response': bot_message,
+            'last_negotiated_price': LAST_NEGOTIATED_PRICE,
+            'show_buttons': False
+        }
 
-    # Use the last negotiated price as the current negotiator price
     negotiator_price = LAST_NEGOTIATED_PRICE if LAST_NEGOTIATED_PRICE is not None else ACTUAL_PRICE
 
-    # Check if user_offer is not None before performing arithmetic
     if user_offer is not None and negotiator_price is not None:
         if abs(user_offer - negotiator_price) <= (0.02 * negotiator_price):
             return {
@@ -70,7 +72,6 @@ def get_openai_response(user_message):
             messages=conversation_history
         )
         bot_message = response.choices[0].message.content.strip()
-        # Update LAST_NEGOTIATED_PRICE based on the bot's response
         bot_price = extract_price_from_message(bot_message)
         logging.info(f"Price extracted from bot response: {bot_price}")
 
@@ -78,11 +79,11 @@ def get_openai_response(user_message):
             LAST_NEGOTIATED_PRICE = bot_price
         conversation_history.append({"role": "assistant", "content": bot_message})
         
-        # Classify the bot response intent based on both user and bot messages
         bot_intent = classify_intent(user_message, bot_message)
+        logging.info(f'user_message is {user_message}')
+        logging.info(f'bot_message is {bot_message}')
         logging.info(f'bot intent is {bot_intent}')
-        
-        # If the bot intent is "acceptance" and attempts are greater than 1, finalize the negotiation
+
         if bot_intent == "acceptance" and negotiation_attempts > 1:
             bot_message = finalize_negotiation(LAST_NEGOTIATED_PRICE, close_offer=True)
             return {'response': bot_message, 'show_buttons': False}
@@ -97,13 +98,8 @@ def get_openai_response(user_message):
 def extract_price_from_message(message):
     """Extract the lowest price preceded by '£' or followed by 'GBP' from the user's message."""
     try:
-        # Regular expression to find prices preceded by '£' or followed by 'GBP'
         prices = re.findall(r'(?:£\s*(\d+\.?\d*)|(\d+\.?\d*)\s*GBP)', message)
-        
-        # Flatten the matched prices and convert them to floats
         prices = [float(price) for price_pair in prices for price in price_pair if price]
-        
-        # Return the lowest price if any prices were found
         if prices:
             return min(prices)
     except Exception as e:
@@ -130,7 +126,6 @@ def extract_user_offer(user_message):
     Returns None if no valid offer is found.
     """
     try:
-        # Assuming user offers are simple integers or float numbers
         offer = float(''.join(filter(str.isdigit, user_message)))
         return offer if offer > 0 else None
     except ValueError:
@@ -138,14 +133,11 @@ def extract_user_offer(user_message):
 
 def initialize_openai_response(user_message):
     global negotiation_attempts, LAST_NEGOTIATED_PRICE
-    # Clear conversation history and reset attempts for a new conversation
     conversation_history.clear()
     negotiation_attempts = 0
     LAST_NEGOTIATED_PRICE = ACTUAL_PRICE  # Reset negotiator's offer
     first_discounted_price = generate_random_discount(ACTUAL_PRICE)
-
     
-    # Initialize with system message and user message
     conversation_history.append({
         "role": "system",
         "content": f"You are a smart and suave price negotiator. You are selling a set of 4 wheels for {ACTUAL_PRICE} {CURRENCY}. Start by always offering a price of {first_discounted_price} first. You should negotiate down to no less than {MIN_PRICE} {CURRENCY} after multiple attempts. The user can offer up to 5 times. If the user's offer is within 10% of the user's price, immediately accept. if the offer is more than the one you offered before, ask te user if they made a typo or something. Go a bit lower the next time you offer a price. Don't mention the price that the user offered and never go below what the user offered. Always offer price in {CURRENCY}"
@@ -159,9 +151,8 @@ def classify_intent(user_message=None, bot_message=None):
     The function considers both the user's message and the bot's response.
     """
     try:
-        # Prepare the message list for the classification model
         messages = [
-            {"role": "system", "content": "Classify the user's intent in a price negotiation. Consider both the user message and the bot's previous response. Determine if the user accepts, rejects, or is still negotiating. If the user offers a counter price then it should be considered a negotiation"}
+            {"role": "system", "content": f"Classify the user's intent in a price negotiation. Consider both the {user_message} and the {bot_message}. Determine if the user accepts, rejects, or is still negotiate. If the {user_message} contains a counter price then it should be considered a negotiate. Only respond with a acceptance, rejection, negotiation and unclear."}
         ]
         
         if user_message:
@@ -170,19 +161,20 @@ def classify_intent(user_message=None, bot_message=None):
         if bot_message:
             messages.append({"role": "assistant", "content": bot_message})
 
-        # Send the messages to the OpenAI model to classify the intent
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=messages
         )
         
         intent = response.choices[0].message.content.strip().lower()
+        
+        logging.info(f'bot intent function is {intent}')
 
-        if "accept" in intent:
+        if "acceptance" in intent:
             return "acceptance"
-        elif "reject" in intent or "decline" in intent:
+        elif "rejection" in intent or "decline" in intent:
             return "rejection"
-        elif "negotiate" in intent:
+        elif "negotiation" in intent:
             return "negotiation"
         else:
             return "unclear"
@@ -212,14 +204,14 @@ def chatbot_response():
     data = request.get_json()
     user_message = data['message']
     bot_response = get_openai_response(user_message)
-    return jsonify(bot_response)  # Directly jsonify the dictionary response
+    return jsonify(bot_response)
 
 @app.route('/initialize', methods=['POST'])
 def chatbot_initialize():
     data = request.get_json()
     user_message = data['message']
     bot_response = initialize_openai_response(user_message)
-    return jsonify(bot_response)  # Directly jsonify the dictionary response
+    return jsonify(bot_response)
 
 if __name__ == '__main__':
     app.run(debug=True)
