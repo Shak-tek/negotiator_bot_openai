@@ -162,7 +162,7 @@ body {
 .buttons button {
     padding: 10px 20px;
     margin: 5px;
-    background-color: #007bff;
+    background-color: #263544;
     color: white;
     border: none;
     border-radius: 5px;
@@ -170,5 +170,5 @@ body {
 }
 
 .buttons button:hover {
-    background-color: #0056b3;
+    background-color: #445d75;
 }

@@ -54,9 +54,11 @@ function typeText(text, container) {
         if (index < text.length) {
             paragraph.textContent += text.charAt(index);
             index++;
+            chatbox.scrollTop = chatbox.scrollHeight;  // Scroll to the bottom during typing
             setTimeout(typeChar, typingSpeed);
         } else {
             paragraph.textContent = text;
+            chatbox.scrollTop = chatbox.scrollHeight;  // Ensure scroll at the end
         }
     }
 
@@ -101,6 +103,7 @@ noDealBtn.addEventListener("click", () => {
     sendToBackend("No Deal!");  // Send "No Deal!" message to the backend
     dealButtons.style.display = 'none';  // Hide buttons after selection
 });
+
 function initializeBackend(message) {
     fetch('http://127.0.0.1:5000/initialize', {
         method: 'POST',
